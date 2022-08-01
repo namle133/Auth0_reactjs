@@ -44,7 +44,6 @@ class App extends React.Component {
       }
     });
   }
-   
 
   setState() {
     let idToken = localStorage.getItem("id_token");
@@ -91,7 +90,8 @@ class Home extends React.Component {
       <div className="container">
         <div className="row">
           <div className="col-xs-8 col-xs-offset-2 jumbotron text-center">
-            <h1>CMS_QOR</h1>
+            <h1>NEWS</h1>
+            <p>A load of NEWS XD</p>
             <p>Sign in to get access </p>
             <a
               onClick={this.authenticate}
@@ -110,7 +110,7 @@ class LoggedIn extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      // jokes: []
+      contents: []
     };
 
     this.serverRequest = this.serverRequest.bind(this);
@@ -125,9 +125,9 @@ class LoggedIn extends React.Component {
   }
 
   serverRequest() {
-    $.get("http://localhost:3000/admin", res => {
+    $.get("http://localhost:3000/api/news", res => {
       this.setState({
-        admin:res
+        contents: res
       });
     });
   }
@@ -143,9 +143,63 @@ class LoggedIn extends React.Component {
         <span className="pull-right">
           <a onClick={this.logout}>Log out</a>
         </span>
-        <h2>CMS</h2>
-        <p>Let's get start!!!</p>
-        <a href="http://localhost:3000/admin">CMS_QOR</a>
+        <h2>NEWS</h2>
+        <p>Let's feed you with some funny news!!!</p>
+        <div className="row">
+          <div className="container">
+            {this.state.contents.map(function(content, i) {
+              return <News key={i} content={content} />;
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
+}
+
+class News extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      liked: "",
+      contents: []
+    };
+    this.like = this.like.bind(this);
+    this.serverRequest = this.serverRequest.bind(this);
+  }
+
+  like() {
+    let content = this.props.content;
+    this.serverRequest(content);
+  }
+  serverRequest(content) {
+    $.post(
+      "http://localhost:3000/api/news/like/" + content.id,
+      { like: 1 },
+      res => {
+        console.log("res... ", res);
+        this.setState({ liked: "Liked!", contents: res });
+        this.props.contents = res;
+      }
+    );
+  }
+
+  render() {
+    return (
+      <div className="col-xs-4">
+        <div className="panel panel-default">
+          <div className="panel-heading">
+            #{this.props.content.id}{" "}
+            <span className="pull-right">{this.state.liked}</span>
+          </div>
+          <div className="panel-body news-hld">{this.props.content.content}</div>
+          <div className="panel-footer">
+            {this.props.content.likes} Likes &nbsp;
+            <a onClick={this.like} className="btn btn-default">
+              <span className="glyphicon glyphicon-thumbs-up" />
+            </a>
+          </div>
+        </div>
       </div>
     );
   }
